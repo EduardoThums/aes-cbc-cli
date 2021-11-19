@@ -31,8 +31,8 @@ class Encryptor:
 
     @staticmethod
     def generate_key_pair():
-        # name = input('Insert your name for the key pair be generated: ')
-        name = 'eduardo'
+        name = input('Insert your name for the key pair be generated: ')
+        # name = 'eduardo'
 
         print(f'Generating key pair for {name}...')
         sleep(0.5)
@@ -52,8 +52,8 @@ class Encryptor:
 
     @staticmethod
     def encrypt_symmetric():
-        # file_path = input('Insert the full file path of the plain file to encrypt it: ')
-        file_path = '/home/eduardo/work/aes-cbc-cli/src/x.txt'
+        file_path = input('Insert the full file path of the plain file to encrypt it: ')
+        # file_path = '/home/eduardo/work/aes-cbc-cli/src/x.txt'
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
@@ -79,15 +79,15 @@ class Encryptor:
 
     @staticmethod
     def encrypt_asymmetric():
-        # file_path = input('Insert the full file path of the public key used to encrypt it: ')
-        pu_file_path = '/home/eduardo/work/aes-cbc-cli/src/eduardo.pu'
+        pu_file_path = input('Insert the full file path of the public key used to encrypt it: ')
+        # pu_file_path = '/home/eduardo/work/aes-cbc-cli/src/eduardo.pu'
 
         if not path.exists(pu_file_path):
             print('The given file path does not exist! Returning...')
             return
 
-        # file_path = input('Insert the full file path of the file to encrypt it: ')
-        file_path = '/home/eduardo/work/aes-cbc-cli/src/k.txt'
+        file_path = input('Insert the full file path of the file to encrypt it: ')
+        # file_path = '/home/eduardo/work/aes-cbc-cli/src/k.txt'
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
@@ -112,6 +112,17 @@ class Encryptor:
         # with open('/home/eduardo/work/aes-cbc-cli/src/k-enc.txt', 'rb') as file:
         #     data = cipher.decrypt(file.read())
         #     write_file_as_binary('/home/eduardo/work/aes-cbc-cli/src/message.txt', data)
+
+
+class Decrypter:
+
+    @staticmethod
+    def decrypt_symmetric():
+        pass
+
+    @staticmethod
+    def decrypt_asymmetric():
+        pass
 
 
 class Menu:
@@ -142,7 +153,7 @@ class Menu:
                 self.display_encrypt_menu()
 
             elif choice == 2:
-                print('Decrpyt')
+                self.display_decrypt_menu()
 
             else:
                 self.exit_with_success()
@@ -183,6 +194,40 @@ class Menu:
                 encryptor.encrypt_asymmetric()
 
             elif choice == 5:
+                self.exit_with_success()
+
+    def display_decrypt_menu(self):
+        choice = None
+
+        while choice != 3:
+            print('\n::::::::::::::::::::')
+            print('::: DECRYPT MENU :::')
+            print('::::::::::::::::::::\n')
+            print('1 - Decrypt plain text file (symmetric mode)')
+            print('2 - Decrypt file (asymmetric mode)')
+            print('3 - Back to main menu')
+            print('4 - Exit')
+
+            try:
+                choice = int(input('>>> '))
+
+            except ValueError:
+                self.show_invalid_entry()
+                continue
+
+            if choice not in [1, 2, 3, 4]:
+                self.show_unknown_entry()
+                continue
+
+            decrypter = Decrypter()
+
+            if choice == 1:
+                decrypter.decrypt_symmetric()
+
+            elif choice == 2:
+                decrypter.decrypt_asymmetric()
+
+            elif choice == 4:
                 self.exit_with_success()
 
     @staticmethod
