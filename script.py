@@ -1,60 +1,84 @@
 #!./venv/bin/python
-from cryptography.hazmat.primitives._serialization import Encoding, PrivateFormat, NoEncryption, PublicFormat
-
-from cryptography.hazmat.primitives.asymmetric import rsa
+from os import getcwd, path
 from time import sleep
-from os import getcwd
+from typing import Union
 
-KEY_SIZE_IN_BITS = 512
+from Crypto.Cipher import AES
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad
+
+PRIVATE_KEY_EXT = 'pr'
+PUBLIC_KEY_EXT = 'pu'
+RSA_KEY_SIZE_IN_BITES = 2048
+AES_KEY_SIZE_IN_BYTES = 16  # 128 bits
 
 
-class Encrypter:
+def write_file_as_binary(file_path: str, data: bytes):
+    _write_file(file_path, 'wb', data)
 
-    # def generate_(self):
-    # name = input('Insert your name for the key pair be generated: ')
-    # name = 'eduardo'
 
-    # self._generate_key_pair(name)
+def write_file_as_plain(file_path: str, data: str):
+    _write_file(file_path, 'w', data)
 
-    # # file_path = input('Insert the full path of the file to be encrypted(Ex: /path/to/file.txt): ')
-    # file_path = '/home/eduardothums/Downloads/file.txt'
-    # self._encrypt_file(file_path)
+
+def _write_file(file_path: str, mode: str, data: Union[bytes, str]):
+    with open(file_path, mode) as file:
+        file.write(data)
+
+
+class Encryptor:
 
     @staticmethod
     def generate_key_pair():
         # name = input('Insert your name for the key pair be generated: ')
         name = 'eduardo'
+
         print(f'Generating key pair for {name}...')
-        sleep(1)
+        sleep(0.5)
 
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=KEY_SIZE_IN_BITS
-        )
+        key = RSA.generate(RSA_KEY_SIZE_IN_BITES)
 
-        private_bytes = private_key.private_bytes(
-            encoding=Encoding.PEM,
-            format=PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=NoEncryption()
-        )
+        private_key = key.export_key()
+        private_key_name = f'{name}.{PRIVATE_KEY_EXT}'
+        write_file_as_binary(f'./src/{private_key_name}', private_key)
 
-        with open(f'./src/{name}.pr', 'wb') as file:
-            file.write(private_bytes)
+        public_key = key.publickey().export_key()
+        public_key_name = f'{name}.{PUBLIC_KEY_EXT}'
+        write_file_as_binary(f'./src/{public_key_name}', public_key)
 
-        public_key = private_key.public_key()
+        print(f'Private key generated at {getcwd()}/src/{private_key_name}')
+        print(f'Public key generated at {getcwd()}/src/{public_key_name}')
 
-        public_bytes = public_key.public_bytes(
-            encoding=Encoding.PEM,
-            format=PublicFormat.SubjectPublicKeyInfo
-        )
+    @staticmethod
+    def encrypt_symmetric():
+        # file_path = input('Insert the full file path of the plain file to encrypt it: ')
+        file_path = '/home/eduardo/work/aes-cbc-cli/src/x.txt'
 
-        with open(f'./src/{name}.pu', 'wb') as file:
-            file.write(public_bytes)
+        if not path.exists(file_path):
+            print('The given file path does not exist! Returning...')
+            return
 
-        print(f'Private key generated at {getcwd()}/{name}.pr')
-        print(f'Public key generated at {getcwd()}/{name}.pr')
+        key = get_random_bytes(AES_KEY_SIZE_IN_BYTES)
+        iv = get_random_bytes(AES_KEY_SIZE_IN_BYTES)
 
-    def _encrypt_file(self, file_path):
+        write_file_as_plain(f'./src/k.txt', key.hex().upper())
+        write_file_as_plain(f'./src/iv.txt', iv.hex().upper())
+
+        print(f'Symmetric key generated at {getcwd()}/src/k.txt')
+        print(f'Initialization vector generated at {getcwd()}/src/iv.txt')
+
+        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+
+        with open(file_path, 'rb') as plain:
+            data = cipher.encrypt(pad(plain.read(), AES.block_size))
+
+            write_file_as_binary('./src/y.txt', data)
+
+        print(f'Plain text file encrypted at {getcwd()}/src/y.txt')
+
+    @staticmethod
+    def encrypt_asymmetric():
         pass
 
 
@@ -115,16 +139,16 @@ class Menu:
                 self.show_unknown_entry()
                 continue
 
-            encrypter = Encrypter()
+            encryptor = Encryptor()
 
             if choice == 1:
-                encrypter.generate_key_pair()
+                encryptor.generate_key_pair()
 
             elif choice == 2:
-                print('encrpy plain text file')
+                encryptor.encrypt_symmetric()
 
-            elif choice == 3:
-                print('encrpy file')
+            # elif choice == 3:
+            #     encrypter.encrypt_asymmetric()
 
             elif choice == 5:
                 self.exit_with_success()
@@ -132,12 +156,12 @@ class Menu:
     @staticmethod
     def exit_with_error(message: str):
         print(f'{message}! Exiting...')
-        exit(1)
+        exit(0.5)
 
     @staticmethod
     def exit_with_success():
         print('Exiting...')
-        sleep(1)
+        sleep(0.5)
         exit(0)
 
     @staticmethod
