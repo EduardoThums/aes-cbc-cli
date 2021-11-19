@@ -3,7 +3,7 @@ from os import getcwd, path
 from time import sleep
 from typing import Union
 
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
@@ -79,7 +79,39 @@ class Encryptor:
 
     @staticmethod
     def encrypt_asymmetric():
-        pass
+        # file_path = input('Insert the full file path of the public key used to encrypt it: ')
+        pu_file_path = '/home/eduardo/work/aes-cbc-cli/src/eduardo.pu'
+
+        if not path.exists(pu_file_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        # file_path = input('Insert the full file path of the file to encrypt it: ')
+        file_path = '/home/eduardo/work/aes-cbc-cli/src/k.txt'
+
+        if not path.exists(file_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        public_key = RSA.import_key(open(pu_file_path).read())
+        cipher = PKCS1_OAEP.new(public_key)
+
+        with open(file_path, 'rb') as plain:
+            data = cipher.encrypt(plain.read())
+
+            og_file_name, ext = path.splitext(file_path)
+            enc_file_name = f'{og_file_name}-encrypted{ext}'
+            print(f'File encrypted at {enc_file_name}')
+
+            write_file_as_binary(enc_file_name, data)
+
+        # Decrypt
+        # private_key = RSA.import_key(open('/home/eduardo/work/aes-cbc-cli/src/eduardo.pr').read())
+        # cipher = PKCS1_OAEP.new(private_key)
+        #
+        # with open('/home/eduardo/work/aes-cbc-cli/src/k-enc.txt', 'rb') as file:
+        #     data = cipher.decrypt(file.read())
+        #     write_file_as_binary('/home/eduardo/work/aes-cbc-cli/src/message.txt', data)
 
 
 class Menu:
@@ -147,8 +179,8 @@ class Menu:
             elif choice == 2:
                 encryptor.encrypt_symmetric()
 
-            # elif choice == 3:
-            #     encrypter.encrypt_asymmetric()
+            elif choice == 3:
+                encryptor.encrypt_asymmetric()
 
             elif choice == 5:
                 self.exit_with_success()
@@ -156,7 +188,7 @@ class Menu:
     @staticmethod
     def exit_with_error(message: str):
         print(f'{message}! Exiting...')
-        exit(0.5)
+        exit(1)
 
     @staticmethod
     def exit_with_success():
