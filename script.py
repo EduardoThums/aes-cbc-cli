@@ -32,7 +32,6 @@ class Encryptor:
     @staticmethod
     def generate_key_pair():
         name = input('Insert your name for the key pair be generated: ')
-        # name = 'eduardo'
 
         print(f'Generating key pair for {name}...')
         sleep(0.5)
@@ -53,7 +52,6 @@ class Encryptor:
     @staticmethod
     def encrypt_symmetric():
         file_path = input('Insert the full file path of the plain file to encrypt it: ')
-        # file_path = '/home/eduardo/work/aes-cbc-cli/src/x.txt'
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
@@ -62,8 +60,8 @@ class Encryptor:
         key = get_random_bytes(AES_KEY_SIZE_IN_BYTES)
         iv = get_random_bytes(AES_KEY_SIZE_IN_BYTES)
 
-        write_file_as_plain(f'./src/k.txt', key.hex().upper())
-        write_file_as_plain(f'./src/iv.txt', iv.hex().upper())
+        write_file_as_binary(f'./src/k.txt', key)
+        write_file_as_binary(f'./src/iv.txt', iv)
 
         print(f'Symmetric key generated at {getcwd()}/src/k.txt')
         print(f'Initialization vector generated at {getcwd()}/src/iv.txt')
@@ -80,14 +78,12 @@ class Encryptor:
     @staticmethod
     def encrypt_asymmetric():
         pu_file_path = input('Insert the full file path of the public key used to encrypt it: ')
-        # pu_file_path = '/home/eduardo/work/aes-cbc-cli/src/eduardo.pu'
 
         if not path.exists(pu_file_path):
             print('The given file path does not exist! Returning...')
             return
 
         file_path = input('Insert the full file path of the file to encrypt it: ')
-        # file_path = '/home/eduardo/work/aes-cbc-cli/src/k.txt'
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
@@ -105,24 +101,62 @@ class Encryptor:
 
             write_file_as_binary(enc_file_name, data)
 
-        # Decrypt
-        # private_key = RSA.import_key(open('/home/eduardo/work/aes-cbc-cli/src/eduardo.pr').read())
-        # cipher = PKCS1_OAEP.new(private_key)
-        #
-        # with open('/home/eduardo/work/aes-cbc-cli/src/k-enc.txt', 'rb') as file:
-        #     data = cipher.decrypt(file.read())
-        #     write_file_as_binary('/home/eduardo/work/aes-cbc-cli/src/message.txt', data)
-
 
 class Decrypter:
 
     @staticmethod
     def decrypt_symmetric():
-        pass
+        file_path = input('Enter the path of the encrypted file: ')
+        if not path.exists(file_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        key_path = input('Enter the path of the key file: ')
+        if not path.exists(key_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        iv_path = input('Enter the path of the IV file: ')
+        if not path.exists(iv_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        new_file_path = input('Enter the path of the new decrypted file: ')
+
+        with open(file_path, 'rb') as encrypted, \
+                open(key_path, 'rb') as key, \
+                open(iv_path, 'rb') as iv:
+            ciphertext = encrypted.read()
+
+            cipher = AES.new(key.read(), AES.MODE_CBC, iv=iv.read())
+            data = cipher.decrypt(ciphertext)
+
+            write_file_as_binary(new_file_path, data)
 
     @staticmethod
     def decrypt_asymmetric():
-        pass
+        pr_file_path = input('Insert the full file path of the private key to decrypt it: ')
+
+        if not path.exists(pr_file_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        file_path = input('Insert the full file path of the encrypted file: ')
+
+        if not path.exists(file_path):
+            print('The given file path does not exist! Returning...')
+            return
+
+        dec_file_path = input('Insert the full file path of the new decrypted file: ')
+
+        private_key = RSA.import_key(open(pr_file_path).read())
+        cipher = PKCS1_OAEP.new(private_key)
+
+        with open(file_path, 'rb') as file:
+            data = cipher.decrypt(file.read())
+            write_file_as_binary(dec_file_path, data)
+
+            print(f'File decrypted at {dec_file_path}')
 
 
 class Menu:
