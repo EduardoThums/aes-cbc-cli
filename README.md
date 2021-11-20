@@ -1,6 +1,6 @@
 ## How to install
 
-See [the install documentation.](./INSTALL)
+See the [install documentation.](./INSTALL)
 
 
 ## TODO
