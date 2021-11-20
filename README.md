@@ -6,7 +6,7 @@ See the [install documentation.](./INSTALL)
 ## How to run
 
 ```bash
-$ ./script.py
+$ python cli.py
 ```
 
 ## TODO

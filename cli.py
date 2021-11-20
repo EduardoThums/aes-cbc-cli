@@ -1,4 +1,3 @@
-#!./venv/bin/python
 from os import getcwd, path
 from time import sleep
 from typing import Union
