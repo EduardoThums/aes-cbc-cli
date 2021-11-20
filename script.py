@@ -51,7 +51,7 @@ class Encryptor:
 
     @staticmethod
     def encrypt_symmetric():
-        file_path = input('Insert the full file path of the plain file to encrypt it: ')
+        file_path = input('Insert the path of the plain file to encrypt it: ')
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
@@ -63,8 +63,8 @@ class Encryptor:
         write_file_as_binary(f'./src/k.txt', key)
         write_file_as_binary(f'./src/iv.txt', iv)
 
-        print(f'Symmetric key generated at {getcwd()}/src/k.txt')
-        print(f'Initialization vector generated at {getcwd()}/src/iv.txt')
+        print(f'Key generated at {getcwd()}/src/k.txt')
+        print(f'IV generated at {getcwd()}/src/iv.txt')
 
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
 
@@ -77,13 +77,13 @@ class Encryptor:
 
     @staticmethod
     def encrypt_asymmetric():
-        pu_file_path = input('Insert the full file path of the public key used to encrypt it: ')
+        pu_file_path = input('Insert the path of the public key used to encrypt it: ')
 
         if not path.exists(pu_file_path):
             print('The given file path does not exist! Returning...')
             return
 
-        file_path = input('Insert the full file path of the file to encrypt it: ')
+        file_path = input('Insert the path of the file to encrypt it: ')
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
