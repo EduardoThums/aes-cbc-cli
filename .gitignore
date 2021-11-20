@@ -230,3 +230,4 @@ cython_debug/
 playground.py
 src/*
 !src/.gitkeep
+.cli-metadata

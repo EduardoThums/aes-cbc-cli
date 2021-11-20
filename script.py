@@ -12,6 +12,8 @@ PRIVATE_KEY_EXT = 'pr'
 PUBLIC_KEY_EXT = 'pu'
 RSA_KEY_SIZE_IN_BITES = 2048
 AES_KEY_SIZE_IN_BYTES = 16  # 128 bits
+CLI_METADATA = '.cli-metadata'
+PREFIX_FOLDER = None
 
 
 def write_file_as_binary(file_path: str, data: bytes):
@@ -27,6 +29,10 @@ def _write_file(file_path: str, mode: str, data: Union[bytes, str]):
         file.write(data)
 
 
+def ask_file_path(message: str):
+    return f'{PREFIX_FOLDER}/{input(message)}'
+
+
 class Encryptor:
 
     @staticmethod
@@ -40,53 +46,53 @@ class Encryptor:
 
         private_key = key.export_key()
         private_key_name = f'{name}.{PRIVATE_KEY_EXT}'
-        write_file_as_binary(f'./src/{private_key_name}', private_key)
+        write_file_as_binary(f'{PREFIX_FOLDER}/{private_key_name}', private_key)
 
         public_key = key.publickey().export_key()
         public_key_name = f'{name}.{PUBLIC_KEY_EXT}'
-        write_file_as_binary(f'./src/{public_key_name}', public_key)
+        write_file_as_binary(f'{PREFIX_FOLDER}/{public_key_name}', public_key)
 
-        print(f'Private key generated at {getcwd()}/src/{private_key_name}')
-        print(f'Public key generated at {getcwd()}/src/{public_key_name}')
+        print(f'Private key generated at {PREFIX_FOLDER}/{private_key_name}')
+        print(f'Public key generated at {PREFIX_FOLDER}/{public_key_name}')
 
     @staticmethod
     def encrypt_symmetric():
-        file_path = input('Insert the full file path of the plain file to encrypt it: ')
+        file_path = input('Insert the plain file to encrypt it: ')
 
         if not path.exists(file_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
         key = get_random_bytes(AES_KEY_SIZE_IN_BYTES)
         iv = get_random_bytes(AES_KEY_SIZE_IN_BYTES)
 
-        write_file_as_binary(f'./src/k.txt', key)
-        write_file_as_binary(f'./src/iv.txt', iv)
+        write_file_as_binary(f'{PREFIX_FOLDER}/k.txt', key)
+        write_file_as_binary(f'{PREFIX_FOLDER}/iv.txt', iv)
 
-        print(f'Symmetric key generated at {getcwd()}/src/k.txt')
-        print(f'Initialization vector generated at {getcwd()}/src/iv.txt')
+        print(f'Symmetric key generated at {PREFIX_FOLDER}/k.txt')
+        print(f'Initialization vector generated at {PREFIX_FOLDER}/iv.txt')
 
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
 
         with open(file_path, 'rb') as plain:
             data = cipher.encrypt(pad(plain.read(), AES.block_size))
 
-            write_file_as_binary('./src/y.txt', data)
+            write_file_as_binary(f'{PREFIX_FOLDER}/y.txt', data)
 
-        print(f'Plain text file encrypted at {getcwd()}/src/y.txt')
+        print(f'Plain text file encrypted at {PREFIX_FOLDER}/y.txt')
 
     @staticmethod
     def encrypt_asymmetric():
-        pu_file_path = input('Insert the full file path of the public key used to encrypt it: ')
+        pu_file_path = ask_file_path('Insert the name of the public key used to encrypt it: ')
 
         if not path.exists(pu_file_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
-        file_path = input('Insert the full file path of the file to encrypt it: ')
+        file_path = ask_file_path('Insert the file to encrypt it: ')
 
         if not path.exists(file_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
         public_key = RSA.import_key(open(pu_file_path).read())
@@ -106,22 +112,22 @@ class Decrypter:
 
     @staticmethod
     def decrypt_symmetric():
-        file_path = input('Enter the path of the encrypted file: ')
+        file_path = ask_file_path('Enter the file to be decrypted: ')
         if not path.exists(file_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
-        key_path = input('Enter the path of the key file: ')
+        key_path = ask_file_path('Enter the key file: ')
         if not path.exists(key_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
-        iv_path = input('Enter the path of the IV file: ')
+        iv_path = input('Enter the IV file: ')
         if not path.exists(iv_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
-        new_file_path = input('Enter the path of the new decrypted file: ')
+        new_file_path = input('Enter the name of the decrypted file: ')
 
         with open(file_path, 'rb') as encrypted, \
                 open(key_path, 'rb') as key, \
@@ -135,19 +141,19 @@ class Decrypter:
 
     @staticmethod
     def decrypt_asymmetric():
-        pr_file_path = input('Insert the full file path of the private key to decrypt it: ')
+        pr_file_path = ask_file_path('Insert the name of the private key to decrypt it: ')
 
         if not path.exists(pr_file_path):
-            print('The given file path does not exist! Returning...')
+            print('The given file does not exist! Returning...')
             return
 
-        file_path = input('Insert the full file path of the encrypted file: ')
+        file_path = ask_file_path('Insert the name of the file to be decrypted: ')
 
         if not path.exists(file_path):
             print('The given file path does not exist! Returning...')
             return
 
-        dec_file_path = input('Insert the full file path of the new decrypted file: ')
+        dec_file_path = ask_file_path('Insert the name of the decrypted file: ')
 
         private_key = RSA.import_key(open(pr_file_path).read())
         cipher = PKCS1_OAEP.new(private_key)
@@ -159,6 +165,35 @@ class Decrypter:
             print(f'File decrypted at {dec_file_path}')
 
 
+class Configurator:
+
+    @staticmethod
+    def set_folder_prefix():
+        folder = input('Insert the prefix folder to be used: ')
+
+        if not path.isdir(folder):
+            print('The given folder does not exist! Returning...')
+            return
+
+        data = f'PREFIX_FOLDER={folder}'
+        write_file_as_plain(f'./{CLI_METADATA}', data)
+
+        Configurator.setup_folder_prefix()
+
+        print('Prefix folder configured!')
+
+    @staticmethod
+    def setup_folder_prefix():
+        global PREFIX_FOLDER
+
+        if path.exists(f'./{CLI_METADATA}'):
+            with open(f'./{CLI_METADATA}') as file:
+                PREFIX_FOLDER = f'{file.read().split("=")[1]}'
+
+        else:
+            PREFIX_FOLDER = f'{getcwd()}/src'
+
+
 class Menu:
 
     def display_main(self):
@@ -166,13 +201,14 @@ class Menu:
 
         choice = None
 
-        while choice != 3:
+        while choice != 4:
             print('\n:::::::::::::::::')
             print('::: MAIN MENU :::')
             print(':::::::::::::::::\n')
             print('1 - Encryption')
             print('2 - Decryption')
-            print('3 - Exit')
+            print('3 - Configuration')
+            print('4 - Exit')
 
             try:
                 choice = int(input('>>> '))
@@ -180,7 +216,7 @@ class Menu:
             except ValueError:
                 self.exit_with_error('Invalid entry')
 
-            if choice not in [1, 2, 3]:
+            if choice not in [1, 2, 3, 4]:
                 self.exit_with_error('Unknown menu entry')
 
             if choice == 1:
@@ -188,6 +224,9 @@ class Menu:
 
             elif choice == 2:
                 self.display_decrypt_menu()
+
+            elif choice == 3:
+                self.display_configure_menu()
 
             else:
                 self.exit_with_success()
@@ -264,6 +303,36 @@ class Menu:
             elif choice == 4:
                 self.exit_with_success()
 
+    def display_configure_menu(self):
+        choice = None
+
+        while choice != 3:
+            print('\n::::::::::::::::::::')
+            print('::: CONFIGURE MENU :::')
+            print('::::::::::::::::::::\n')
+            print('1 - Set folder prefix to generated files (default to ./src)')
+            print('2 - Back to main menu')
+            print('3 - Exit')
+
+            try:
+                choice = int(input('>>> '))
+
+            except ValueError:
+                self.show_invalid_entry()
+                continue
+
+            if choice not in [1, 2, 3]:
+                self.show_unknown_entry()
+                continue
+
+            configurator = Configurator()
+
+            if choice == 1:
+                configurator.set_folder_prefix()
+
+            elif choice == 3:
+                self.exit_with_success()
+
     @staticmethod
     def exit_with_error(message: str):
         print(f'{message}! Exiting...')
@@ -285,6 +354,7 @@ class Menu:
 
 
 if __name__ == '__main__':
-    menu = Menu()
+    Configurator.setup_folder_prefix()
 
+    menu = Menu()
     menu.display_main()
