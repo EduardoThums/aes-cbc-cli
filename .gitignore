@@ -230,3 +230,5 @@ cython_debug/
 playground.py
 src/*
 !src/.gitkeep
+bundle.zip
+bundle
